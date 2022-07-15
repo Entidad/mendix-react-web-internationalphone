@@ -6,6 +6,12 @@ export default class InternationalPhone extends Component{
 		super(props);
 		window.wmain=this;
 	}
+	componentDidMount(){
+	}
+	componentWillUnmount(){
+	}
+	componentDidUpdate(prvprops,prvstate){
+	}
 	onChange(value){
 		if(this.props.value&&this.props.value.status=="available")this.props.value.setValue(value);
 		if(
@@ -41,8 +47,8 @@ export default class InternationalPhone extends Component{
 			}
 		}
 	}
-
 	render(){
+		//--------------------------------------------------------------------------------
 		const value=this.props.value.value||"";
 		const validation=this.props.value.validation;
 		//--------------------------------------------------------------------------------
@@ -66,7 +72,6 @@ export default class InternationalPhone extends Component{
 				setIso2={(value)=>{this.setIso2(value);}}
 				value={value}
 				validation={validation}
-
 				allowDropdown={allowDropdown}
 				autoHideDialCode={autoHideDialCode}
 				autoPlaceholder={autoPlaceholder}
@@ -79,8 +84,6 @@ export default class InternationalPhone extends Component{
 				placeholderNumberType={placeholderNumberType}
 				preferredCountries={preferredCountries}
 				separateDialCode={separateDialCode}
-
-
 			/>
 		);
 	}

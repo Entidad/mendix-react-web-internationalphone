@@ -1,8 +1,7 @@
 import React,{Component,createElement}from"react";
-import intlTelInput from "intl-tel-input";
-//import"intl-tel-input/build/css/intlTelInput.css";
-import"../ui/intl-tel-input/intlTelInput.css";
+import intlTelInput from"intl-tel-input";
 import{init}from"./util.js";
+import"../ui/intl-tel-input/intlTelInput.css";
 const i=init();
 export class InternationalPhoneComponent extends Component{
 	constructor(props){
@@ -38,10 +37,6 @@ export class InternationalPhoneComponent extends Component{
 		for(var i=0;i<this.props.preferredCountries.length;i++){
 			preferredCountries.push(this.props.preferredCountries[i].country);
 		}
-console.error("this.props.formatOnDisplay");
-console.error(this.props.formatOnDisplay);
-console.error("this.props.nationalMode");
-console.error(this.props.nationalMode);
 		this.iti=intlTelInput(input,{
 			allowDropdown:this.props.allowDropdown,
 			autoHideDialCode:this.props.autoHideDialCode,
