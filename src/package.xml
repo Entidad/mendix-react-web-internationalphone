@@ -5,7 +5,7 @@
             <widgetFile path="InternationalPhone.xml"/>
         </widgetFiles>
         <files>
-            <file path="endidad/io/internationalphone"/>
+            <file path="entidad/io/internationalphone"/>
         </files>
     </clientModule>
 </package>
