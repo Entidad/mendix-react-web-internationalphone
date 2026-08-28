@@ -104,7 +104,9 @@ Each **Phone number attributes** row has:
 | `excludeCountries` | List | no | Remove these countries from the dropdown. |
 | `localizedCountries` | List | no | Country name translations, one `country` + `translation` per row. |
 
-The standard **Visibility** property is supported.
+This widget declares no system properties of its own — visibility, editability and
+validation are configured on the text box you drop inside it. It picks up **Name**,
+**Class**, **Style** and **Tab index** from the Common tab.
 
 ### Behaviour
 
