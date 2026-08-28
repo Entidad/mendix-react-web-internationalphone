@@ -1,12 +1,12 @@
 {
   "name": "internationalphone",
   "widgetName": "InternationalPhone",
-  "version": "0.0.2",
+  "version": "2.0.0",
   "description": "International Phone",
-  "copyright": "GNU",
+  "copyright": "© 2022-2026 Entidad. All Rights Reserved.",
   "author": "Ockert van Schalkwyk",
   "engines": {
-    "node": ">=12"
+    "node": ">=22.18.0"
   },
   "config": {
     "projectPath": "./test/",
@@ -22,12 +22,24 @@
     "prerelease": "npm run lint",
     "release": "pluggable-widgets-tools release:web"
   },
-  "license": "GNU",
+  "license": "Apache-2.0",
   "devDependencies": {
-    "@mendix/pluggable-widgets-tools": "^9.0.0"
+    "@mendix/pluggable-widgets-tools": "11.12.1"
   },
   "dependencies": {
     "classnames": "^2.2.6",
-    "intl-tel-input": "^17.0.16"
+    "intl-tel-input": "17.0.21"
+  },
+  "overrides": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0"
+  },
+  "resolutions": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0"
   }
 }

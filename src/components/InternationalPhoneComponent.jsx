@@ -1,29 +1,30 @@
-import React,{Component,createElement}from"react";
+import React,{Component}from"react";
 import intlTelInput from"intl-tel-input";
+// Defines window.intlTelInputUtils. Required for getNumber()/formatOnDisplay/placeholders;
+// the legacy Dojo widget loaded the same file as an AMD dependency.
+import"intl-tel-input/build/js/utils";
 import{init}from"./util.js";
 import"../ui/intl-tel-input/intlTelInput.css";
 const i=init();
 export class InternationalPhoneComponent extends Component{
 	constructor(props){
 		super(props);
-		this.state={
-			value:props.value,
-			displayValue:"",
-			mask:"999-999"
-		};
-		this.onChange=this.onChange.bind(this);
 		this.onBlur=this.onBlur.bind(this);
-		this.onKeyUp=this.onKeyUp.bind(this);
-		this.inputRef=React.createRef();
+		// We decorate the Mendix text box dropped into our content zone rather than
+		// rendering our own input, so the ref is on the container and we look inside it.
+		this.containerRef=React.createRef();
+		this.input=null;
 		this.iti=null;
 		window.wcom=this;
 		window.intlTelInput=intlTelInput;
 	}
 	componentDidMount(){
-		let input=this.inputRef.current;
+		const input=this.containerRef.current?this.containerRef.current.querySelector("input"):null;
+		if(input==null)return;
+		this.input=input;
 		var excludeCountries=[];
 		for(var i=0;i<this.props.excludeCountries.length;i++){
-			excludeCountries.push(this.excludeCountries[i].country);
+			excludeCountries.push(this.props.excludeCountries[i].country);
 		}
 		var localizedCountries={};
 		for(var i=0;i<this.props.localizedCountries.length;i++){
@@ -54,7 +55,7 @@ export class InternationalPhoneComponent extends Component{
 			//Type: Object Default:{}
 			//Allows to translate the countries by its given iso code e.g.:
 			//{"de":"Deutschland"}
-			localizedCountries:this.props.localizedCountries,
+			localizedCountries:localizedCountries,
 			//Type: Boolean Default: true
 			//Allow users to enter national numbers (and not have to think about international dial codes). Formatting, validation and placeholders still work. Then you can use getNumber to extract a full international number - see example. This option now defaults to true, and it is recommended that you leave it that way as it provides a better experience for the user.
 			nationalMode:this.props.nationalMode,
@@ -66,7 +67,7 @@ export class InternationalPhoneComponent extends Component{
 			placeholderNumberType:this.props.placeholderNumberType,
 			//Type: Array Default: ["us", "gb"]
 			//Specify the countries to appear at the top of the list.
-			preferredCountries:this.props.preferredCountries,
+			preferredCountries:preferredCountries,
 			//Type: Boolean Default: false
 			//Display the country dial code next to the selected flag so it's not part of the typed number. Note that this will disable nationalMode because technically we are dealing with international numbers, but with the dial code separated.
 			separateDialCode:this.props.separateDialCode,
@@ -86,59 +87,57 @@ export class InternationalPhoneComponent extends Component{
 			//Add a hidden input with the given name.
 			hiddenInput:"",
 		});
+		this.input.addEventListener("blur",this.onBlur);
 		this.iti.telInput.addEventListener("countrychange",()=>{
 			//this.setState({value:"+"+this.iti.selectedCountryData.iso2});
-			this.props.setIso2(this.iti.selectedCountryData.iso2);
+			this.props.setIso2(this.iti.selectedCountryData.iso2,(format)=>this.getFormattedNumber(format));
 		});
 	}
 	componentWillUnmount(){
+		if(this.input!=null){
+			this.input.removeEventListener("blur",this.onBlur);
+		}
 		if(this.iti!=null){
 			this.iti.destroy();
 		}
 	}
-	componentDidUpdate(prvprops,prvstate){
-		if(
-			prvprops.value!=null&&
-			this.props.value!=null&&
-			prvprops.value!=this.props.value
-		){
-			this.setState({value:this.props.value});
-		}
+	// The Mendix text box owns its own value binding, but the country selection is ours.
+	// intlTelInput only reads initialCountry once, at init, so without this the flag never
+	// follows the attribute changing later (a microflow writing it, or the data view moving
+	// to a different record).
+	componentDidUpdate(prevProps){
+		if(this.iti==null)return;
+		const next=this.props.initialCountry;
+		if(!next||next===prevProps.initialCountry)return;
+		const current=this.iti.selectedCountryData?this.iti.selectedCountryData.iso2:null;
+		// Compare case-insensitively: the attribute may hold "US" while iso2 is "us".
+		// Skipping the no-op call also stops setCountry -> countrychange -> setValue looping.
+		if(current&&current.toLowerCase()===String(next).toLowerCase())return;
+		this.iti.setCountry(String(next).toLowerCase());
 	}
-	onChange(event){
-		let value=event.target.value;
-		this.setState({value:value});
+	// Resolve the current number in one of intl-tel-input's formats.
+	// Mirrors the legacy widget: iti.getNumber(intlTelInputUtils.numberFormat[<FORMAT>]).
+	getFormattedNumber(format){
+		if(this.iti==null)return"";
+		const formats=(typeof window!=="undefined"&&window.intlTelInputUtils)?window.intlTelInputUtils.numberFormat:null;
+		if(formats==null||formats[format]===undefined)return this.iti.getNumber();
+		return this.iti.getNumber(formats[format]);
 	}
-	onKeyUp(event){
-	}
-	onBlur(event){
-		this.onChange(event);
-		let value=event.target.value;
-		this.props.onChange(value);
+	onBlur(){
+		if(this.input==null)return;
+		// Pass the selected country too. countrychange does not fire reliably -- it is
+		// driven by keyup, so a value set programmatically (Mendix re-rendering the bound
+		// text box) changes the number without ever firing it, leaving the country
+		// attribute stale. The legacy widget wrote the country on blur for this reason.
+		const iso2=(this.iti&&this.iti.selectedCountryData)?this.iti.selectedCountryData.iso2:null;
+		this.props.onChange(this.input.value,(format)=>this.getFormattedNumber(format),iso2);
 	}
 	render(){
+		// Render only the drop zone. The text box inside keeps every stock Mendix
+		// property -- label, editability, validation, accessibility, events.
 		return(
-			<div
-				className={this.props.validation?"widget-internationalphone has-error":"widget-internationalphone"}
-			>
-					<input
-						className="form-control"
-						value={this.state.value}
-						onChange={this.onChange}
-						onKeyUp={this.onKeyUp}
-						onBlur={this.onBlur}
-						ref={this.inputRef}
-					>
-					</input>
-					{
-						this.props.validation?(
-							<div
-								className="alert alert-danger mx-validation-message"
-							>
-								{this.props.validation}
-							</div>
-						):(null)
-					}
+			<div className="widget-internationalphone" ref={this.containerRef}>
+				{this.props.content}
 			</div>
 		);
 	}
